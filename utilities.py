@@ -31,23 +31,26 @@ def clahe(img: np.ndarray):
 #***************************** REDUCAO DE RUIDO *****************************
 def bilateral(img: np.ndarray):
         
-    return cv2.bilateralFilter(img,5,10,10) 
+    return cv2.bilateralFilter(img,5,10,10)
+
+def gaussian_filter(img: np.ndarray):
+    pass
 #****************************************************************************
 
 
-def obr(img: np.ndarray, draw=False):
+def orb(img: np.ndarray, draw=False, nfeatures=500, scoretype=cv2.ORB_HARRIS_SCORE):
     # Initiate ORB detector
-    orb = cv2.ORB_create()
+    orb = cv2.ORB_create(nfeatures=nfeatures, scoreType=scoretype)
     # Find keypoints
-    kps = orb.detect(img, None)
+    kp = orb.detect(img, None)
     # Compute descriptors
-    kps, des = orb.compute(img, kps)
+    kp, des = orb.compute(img, kp)
 
     if draw:
         # Draw only the location of each keypoint
-        img2 = cv2.drawKeypoints(img, kps, None, color=(0,255,0), flags=0)
+        img2 = cv2.drawKeypoints(img, kp, None, color=(0,255,0), flags=0)
         plt.imshow(img2)
         plt.show()
 
-    return kps, des
+    return kp, des
 
