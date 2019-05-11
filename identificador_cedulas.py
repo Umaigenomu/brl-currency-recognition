@@ -14,7 +14,7 @@ if __name__ == '__main__':
     #    CARREGA IMAGEM
     img = cv2.imread('bill_scans/'+ currency_name +'.jpg', cv2.IMREAD_GRAYSCALE)
     
-    img_final = process_img.process_2back(img)
+    img_final = preprocessing.process_2back(img)
 
     # MOSTRA IMAGEM PROCESSADA
     cv2.imshow('image', img_final)
