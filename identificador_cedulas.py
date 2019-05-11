@@ -27,5 +27,5 @@ if __name__ == '__main__':
     cv2.waitKey(0)
 
     # salva imagem
-    cv2.imwrite('gauss-otsu_bin.png', bin_img)
+    cv2.imwrite('./results/gauss-otsu_bin.png', bin_img)
     cv2.destroyAllWindows()
