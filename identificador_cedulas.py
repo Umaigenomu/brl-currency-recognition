@@ -4,28 +4,25 @@ Created on 10 de mai de 2019
 identifica cedulas e avalia se eh uma nota verdadeira
 """
 import cv2
+import process_img
 
 
 if __name__ == '__main__':
+    
+    currency_name = '2_back'
+    
+    #    CARREGA IMAGEM
+    img = cv2.imread('bill_scans/'+ currency_name +'.jpg', cv2.IMREAD_GRAYSCALE)
+    
+    img_final = process_img.process_2back(img)
 
-    img = cv2.imread('bill_scans/2_back.jpg', cv2.IMREAD_GRAYSCALE)
-    """
-    bin_img = cv2.adaptiveThreshold(img,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-            cv2.THRESH_BINARY,9,5)
-    """
+    # MOSTRA IMAGEM PROCESSADA
+    cv2.imshow('image', img_final)
 
-    # Otsu's thresholding after Gaussian filtering
-    blur = cv2.GaussianBlur(img, (1, 1), 0)
-    ret3, bin_img = cv2.threshold(
-        blur, 0, 255, cv2.THRESH_BINARY+cv2.THRESH_OTSU)
-
-    # mostra imagem binarizada
-    cv2.imshow('image', bin_img)
-
-    # mostra imagem original
+    # MOSTRA IMAGEM ORIGINALl
     cv2.imshow('imagem', img)
     cv2.waitKey(0)
 
-    # salva imagem
-    cv2.imwrite('./results/gauss-otsu_bin.png', bin_img)
+    # SALVA IMAGEM
+    cv2.imwrite('./results/'+currency_name+'.png', img_final)
     cv2.destroyAllWindows()

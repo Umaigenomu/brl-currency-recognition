@@ -2,6 +2,7 @@ import numpy as np
 import cv2
 import matplotlib.pyplot as plt
 
+#**************************** BINARIZAZAO ***********************************
 def otsu_thresholding(img: np.ndarray, inc_ret=False):
     # Gaussian filtering
     blur = cv2.GaussianBlur(img, (1, 1), 0)
@@ -11,6 +12,27 @@ def otsu_thresholding(img: np.ndarray, inc_ret=False):
     if inc_ret:
         return ret3, bin_img
     return bin_img
+
+def adaptive_thresholding(img : np.ndarray):
+    
+    return  cv2.adaptiveThreshold(img,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+                                  cv2.THRESH_BINARY,91,0)
+    
+#****************************************************************************
+
+#***************************** EQUALIZACAO DE HISTOGRAMA ********************
+def clahe(img: np.ndarray):
+    
+    clahe = cv2.createCLAHE()
+    
+    return clahe.apply(img) 
+#****************************************************************************
+
+#***************************** REDUCAO DE RUIDO *****************************
+def bilateral(img: np.ndarray):
+        
+    return cv2.bilateralFilter(img,5,10,10) 
+#****************************************************************************
 
 
 def obr(img: np.ndarray, draw=False):
