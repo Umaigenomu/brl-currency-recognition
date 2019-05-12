@@ -38,6 +38,7 @@ def gaussian_filter(img: np.ndarray):
 #****************************************************************************
 
 
+#***************************** IDENTIFICACAO DE FEATURES *****************************
 def orb(img: np.ndarray, draw=False, nfeatures=500, scoretype=cv2.ORB_HARRIS_SCORE):
     # Initiate ORB detector
     orb = cv2.ORB_create(nfeatures=nfeatures, scoreType=scoretype)
@@ -53,4 +54,43 @@ def orb(img: np.ndarray, draw=False, nfeatures=500, scoretype=cv2.ORB_HARRIS_SCO
         plt.show()
 
     return kp, des
+
+def sift(img: np.ndarray):
+    pass
+#****************************************************************************
+
+
+#***************************** FEATURE MATCHING *****************************
+def brute_force_orb(img1: np.ndarray, img2: np.ndarray, crosscheck=False, draw=False, **orb_params):
+    """
+    Applies brute force matching using ORB descriptors. As a consequence,
+    the distance between each feature is calculated with cv2.NORM_HAMMING.
+    :param img1: Image to be checked upon
+    :param img2: Bill scan that represents an original image
+    :param crosscheck:
+        When cross checking is enabled, the matcher will only return matches in which:
+        given a feature (i,j) in img1, (i2,j2) from img2 is the best match from
+        img1's perspective, and (i, j) is also the best match from img2's perspective.
+        That is, the matching algorithm returns mutual results from both sides.
+    :param orb_params: Parameters for the ORB function that returns the descriptors
+    :return: A DMatch object. A DMatch object has the following attributes:
+         DMatch.distance - Distance between descriptors. The lower, the better it is.
+         DMatch.trainIdx - Index of the descriptor in train descriptors
+         DMatch.queryIdx - Index of the descriptor in query descriptors
+         DMatch.imgIdx - Index of the train image.
+    """
+    # Find keypoints and descriptors for each image
+    kp1, des1 = orb(img1, **orb_params)
+    kp2, des2 = orb(img2, **orb_params)
+    # Create brute force matcher with NORM_HAMMING as its distance alg
+    bfm = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=crosscheck)
+    matches = bfm.match(des1, des2)
+    if draw:
+        sorted_matches = sorted(matches, key= lambda match: match.distance)
+        img3 = cv2.drawMatches()
+    return matches
+
+#****************************************************************************
+
+
 
