@@ -4,19 +4,19 @@ Created on 10 de mai de 2019
 identifica cedulas e avalia se eh uma nota verdadeira
 """
 import cv2
-import preprocessing
+import processor
 
 
 if __name__ == '__main__':
     
-    currency_name = '5_front_shot_backlight'
+    currency_name = '2_back_shot_3'
     #    CARREGA IMAGEM
     img = cv2.imread('bill_shots/'+ currency_name +'.jpg', cv2.IMREAD_GRAYSCALE)
     
-    img = cv2.resize(img, (640,400))
+    #img = cv2.resize(img, (640,400))
     
     
-    img_final = preprocessing.process_2back(img)
+    img_final = processor.process_2back(img)
 
     # MOSTRA IMAGEM PROCESSADA
     cv2.imshow('image', img_final)

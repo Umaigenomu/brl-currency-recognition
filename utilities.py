@@ -14,16 +14,16 @@ def otsu_thresholding(img: np.ndarray, inc_ret=False):
     return bin_img
 
 def adaptive_thresholding(img : np.ndarray):
-    
+
     return  cv2.adaptiveThreshold(img,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-                                  cv2.THRESH_BINARY,91,0)
+                                  cv2.THRESH_BINARY,57,0)
     
 #****************************************************************************
 
 #***************************** EQUALIZACAO DE HISTOGRAMA ********************
 def clahe(img: np.ndarray):
     
-    clahe = cv2.createCLAHE(clipLimit=3.0,tileGridSize=(5,5))
+    clahe = cv2.createCLAHE(clipLimit=2.0,tileGridSize=(8,8))
     
     return clahe.apply(img) 
 #****************************************************************************
@@ -35,7 +35,7 @@ def bilateral(img: np.ndarray):
 
 def denoising(img: np.ndarray):
     
-    return cv2.fastNlMeansDenoising(img,None,4,7,10)
+    return cv2.fastNlMeansDenoising(img,None,5,9,15)
 #****************************************************************************
 
 #***************************** ROTACAO **************************************
