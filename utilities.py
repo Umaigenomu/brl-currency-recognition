@@ -23,7 +23,7 @@ def adaptive_thresholding(img : np.ndarray):
 #***************************** EQUALIZACAO DE HISTOGRAMA ********************
 def clahe(img: np.ndarray):
     
-    clahe = cv2.createCLAHE()
+    clahe = cv2.createCLAHE(clipLimit=3.0,tileGridSize=(5,5))
     
     return clahe.apply(img) 
 #****************************************************************************
@@ -31,12 +31,20 @@ def clahe(img: np.ndarray):
 #***************************** REDUCAO DE RUIDO *****************************
 def bilateral(img: np.ndarray):
         
-    return cv2.bilateralFilter(img,5,10,10)
+    return cv2.bilateralFilter(img,3,15,5)
 
-def gaussian_filter(img: np.ndarray):
-    pass
+def denoising(img: np.ndarray):
+    
+    return cv2.fastNlMeansDenoising(img,None,4,7,10)
 #****************************************************************************
 
+#***************************** ROTACAO **************************************
+def rotacao(img):
+    
+    rows,cols = img.shape
+    m = cv2.getRotationMatrix2D((cols/2,rows/2),90,-1) #rotaciona 90 graus sentido horario
+    return cv2.warpAffine(img,m,(cols,rows))
+#****************************************************************************
 
 #***************************** IDENTIFICACAO DE FEATURES *****************************
 def orb(img: np.ndarray, draw=False, nfeatures=500, scoretype=cv2.ORB_HARRIS_SCORE):

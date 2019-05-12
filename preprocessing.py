@@ -9,6 +9,9 @@ def process_2front(img):
 
 def process_2back(img):
     
+    img = utilities.denoising(img)
+    #img = utilities.bilateral(img)
+    img = utilities.clahe(img)
     img_result = utilities.adaptive_thresholding(img)
     
     return img_result
