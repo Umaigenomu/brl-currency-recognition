@@ -2,51 +2,52 @@ import numpy as np
 import cv2
 import matplotlib.pyplot as plt
 
-#**************************** BINARIZAZAO ***********************************
+
+# **************************** BINARIZAZAO ***********************************
 def otsu_thresholding(img: np.ndarray, inc_ret=False):
     # Gaussian filtering
     blur = cv2.GaussianBlur(img, (1, 1), 0)
     # Otsu's thresholding
     ret3, bin_img = cv2.threshold(
-        blur, 0, 255, cv2.THRESH_BINARY+cv2.THRESH_OTSU)
+        blur, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
     if inc_ret:
         return ret3, bin_img
     return bin_img
 
 def adaptive_thresholding(img : np.ndarray):
-
     return  cv2.adaptiveThreshold(img,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
                                   cv2.THRESH_BINARY,57,0)
-    
-#****************************************************************************
 
-#***************************** EQUALIZACAO DE HISTOGRAMA ********************
+# ****************************************************************************
+
+# ***************************** EQUALIZACAO DE HISTOGRAMA ********************
 def clahe(img: np.ndarray):
-    
-    clahe = cv2.createCLAHE(clipLimit=2.0,tileGridSize=(8,8))
-    
-    return clahe.apply(img) 
-#****************************************************************************
 
-#***************************** REDUCAO DE RUIDO *****************************
+    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
+
+    return clahe.apply(img)
+# ****************************************************************************
+
+# ***************************** REDUCAO DE RUIDO *****************************
 def bilateral(img: np.ndarray):
-        
-    return cv2.bilateralFilter(img,3,15,5)
+
+    return cv2.bilateralFilter(img, 3, 15, 5)
 
 def denoising(img: np.ndarray):
-    
-    return cv2.fastNlMeansDenoising(img,None,5,9,15)
-#****************************************************************************
 
-#***************************** ROTACAO **************************************
+    return cv2.fastNlMeansDenoising(img, None, 5, 9, 15)
+# ****************************************************************************
+
+# ***************************** ROTACAO **************************************
 def rotacao(img):
-    
-    rows,cols = img.shape
-    m = cv2.getRotationMatrix2D((cols/2,rows/2),90,-1) #rotaciona 90 graus sentido horario
-    return cv2.warpAffine(img,m,(cols,rows))
-#****************************************************************************
+    rows, cols = img.shape
+    m = cv2.getRotationMatrix2D((cols / 2, rows / 2), 90, -1)  # rotaciona 90 graus sentido horario
+    return cv2.warpAffine(img, m, (cols, rows))
 
-#***************************** IDENTIFICACAO DE FEATURES *****************************
+
+# ****************************************************************************
+
+# ***************************** IDENTIFICACAO DE FEATURES *****************************
 def orb(img: np.ndarray, draw=False, nfeatures=500, scoretype=cv2.ORB_HARRIS_SCORE):
     # Initiate ORB detector
     orb_obj = cv2.ORB_create(nfeatures=nfeatures, scoreType=scoretype)
@@ -57,18 +58,26 @@ def orb(img: np.ndarray, draw=False, nfeatures=500, scoretype=cv2.ORB_HARRIS_SCO
 
     if draw:
         # Draw only the location of each keypoint
-        img2 = cv2.drawKeypoints(img, kp, None, color=(0,255,0), flags=0)
+        img2 = cv2.drawKeypoints(img, kp, None, color=(0, 255, 0), flags=0)
         plt.imshow(img2)
         plt.show()
 
     return kp, des
 
+
 def sift(img: np.ndarray):
+    """
+    Since this algorithm is patented, we decided not to use it.
+    :param img:
+    :return:
+    """
     pass
-#****************************************************************************
 
 
-#***************************** FEATURE MATCHING *****************************
+# ****************************************************************************
+
+
+# ***************************** FEATURE MATCHING *****************************
 def brute_force_orb(img1: np.ndarray, img2: np.ndarray, crosscheck=False,
                     orb_obj=None, draw=False, **orb_params):
     """
@@ -106,50 +115,56 @@ def brute_force_orb(img1: np.ndarray, img2: np.ndarray, crosscheck=False,
     bfm = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=crosscheck)
     matches = bfm.match(des1, des2)
     if draw:
-        sorted_matches = sorted(matches, key= lambda match: match.distance)
+        sorted_matches = sorted(matches, key=lambda match: match.distance)
         img3 = cv2.drawMatches(img1, kp1, img2, kp2, sorted_matches[:15],
                                None, flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
         plt.imshow(img3)
         plt.show()
     return matches
 
-def flann(kp1, des1, kp2, des2, index_params=None, search_params=None, flann_obj=None,
-          match_count=2, return_best=False):
-    """
 
-    :param kp1:
-    :param des1:
-    :param kp2:
-    :param des2:
-    :param index_params:
-    :param search_params:
-    :param flann_obj:
-    :param match_count:
-    :param return_best:
-    :return:
-    """
+def flann(des1, des2, index_params=None, search_params=None, flann_obj=None, return_best=False):
     if not flann_obj:
-        flann_obj = cv2.FlannBasedMatcher(index_params, search_params)
-    matches = flann_obj.knnMatch(des1, des2, k=match_count)
+        if search_params:
+            flann_obj = cv2.FlannBasedMatcher(index_params, search_params)
+        else:
+            flann_obj = cv2.FlannBasedMatcher(index_params)
+    matches = flann_obj.knnMatch(des1, des2, k=2)
     if return_best:
         # Filter matches using Lowe's ratio test
         good_matches = []
-        for kp1, kp2 in matches:
-            if kp1.distance < 0.7 * kp2.distance:
-                good_matches.append(kp1)
+        for m1, m2 in matches:
+            if m1.distance < 0.7 * m2.distance:
+                good_matches.append(m1)
         return good_matches
     else:
         return matches
 
-def flann_executor(img1: np.ndarray, img2: np.ndarray, algo="orb", algo_obj=None, draw=False):
+
+def flann_executor(img1: np.ndarray, img2: np.ndarray, algo_obj=None, search_params=None,
+                   return_best=False, draw=False, alg_params=None):
     if not algo_obj:
-        if algo == "orb":
-            pass
-        else:
-            pass
+        if not alg_params:
+            alg_params = dict()
+        kp1, des1 = orb(img1, **alg_params)
+        kp2, des2 = orb(img2, **alg_params)
+    else:
+        kp1, des1 = algo_obj.detectAndCompute(img1, None)
+        kp2, des2 = algo_obj.detectAndCompute(img2, None)
+    flann_index_lsh = 6
+    index_params = dict(algorithm=flann_index_lsh,
+                        table_number=6,  # 12
+                        key_size=12,  # 20
+                        multi_probe_level=1)  # 2
+    if draw:
+        matches = flann(des1, des2, index_params, search_params)
+        img_matches = np.empty((max(img1.shape[0], img2.shape[0]), img1.shape[1] + img2.shape[1], 3), dtype=np.uint8)
+        cv2.drawMatches(img1, kp1, img2, kp2, matches, img_matches,
+                        flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
+        cv2.imshow("Good Matches", img_matches)
+        cv2.waitKey()
+    else:
+        matches = flann(des1, des2, index_params, search_params)
+    return matches
 
-    pass
-#****************************************************************************
-
-
-
+# ****************************************************************************
