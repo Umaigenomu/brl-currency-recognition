@@ -34,10 +34,12 @@ def sample_exec():
 
 if __name__ == '__main__':
     files_to_check = [
-        "bill_shots/5_dark_back_shot.png",
+        "bill_shots/5_dark_back_shot.jpg",
         "bill_shots/2_back_shot_3.jpg"
     ]
     processor_obj = processor.Processor(files=files_to_check)
+    # processor_obj.process_flann(return_matches=True, return_kps=True)
     processor_obj.process_bfm(return_matches=True, return_kps=True)
+    # Salva os features pareados
     processor_obj.save_matches()
     pass
