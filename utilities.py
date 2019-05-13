@@ -8,34 +8,37 @@ def otsu_thresholding(img: np.ndarray, inc_ret=False):
     # Gaussian filtering
     blur = cv2.GaussianBlur(img, (1, 1), 0)
     # Otsu's thresholding
-    ret3, bin_img = cv2.threshold(
-        blur, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    ret3, bin_img = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
     if inc_ret:
         return ret3, bin_img
     return bin_img
 
-def adaptive_thresholding(img : np.ndarray):
-    return  cv2.adaptiveThreshold(img,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-                                  cv2.THRESH_BINARY,57,0)
+
+def adaptive_thresholding(img: np.ndarray):
+    return cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+                                 cv2.THRESH_BINARY, 57, 0)
+
 
 # ****************************************************************************
 
 # ***************************** EQUALIZACAO DE HISTOGRAMA ********************
 def clahe(img: np.ndarray):
-
     clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
 
     return clahe.apply(img)
+
+
 # ****************************************************************************
 
 # ***************************** REDUCAO DE RUIDO *****************************
 def bilateral(img: np.ndarray):
-
     return cv2.bilateralFilter(img, 3, 15, 5)
 
-def denoising(img: np.ndarray):
 
+def denoising(img: np.ndarray):
     return cv2.fastNlMeansDenoising(img, None, 5, 9, 15)
+
+
 # ****************************************************************************
 
 # ***************************** ROTACAO **************************************
@@ -118,7 +121,7 @@ def brute_force_orb(img1: np.ndarray, img2: np.ndarray, crosscheck=False,
         sorted_matches = sorted(matches, key=lambda match: match.distance)
         img3 = cv2.drawMatches(img1, kp1, img2, kp2, sorted_matches[:15],
                                None, flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
-        plt.imshow(img3)
+        plt.imshow(img3,)
         plt.show()
     return matches
 
@@ -157,14 +160,15 @@ def flann_executor(img1: np.ndarray, img2: np.ndarray, algo_obj=None, search_par
                         key_size=12,  # 20
                         multi_probe_level=1)  # 2
     if draw:
-        matches = flann(des1, des2, index_params, search_params)
-        img_matches = np.empty((max(img1.shape[0], img2.shape[0]), img1.shape[1] + img2.shape[1], 3), dtype=np.uint8)
-        cv2.drawMatches(img1, kp1, img2, kp2, matches, img_matches,
-                        flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
-        cv2.imshow("Good Matches", img_matches)
-        cv2.waitKey()
-    else:
-        matches = flann(des1, des2, index_params, search_params)
+        matches = flann(des1, des2, index_params, search_params, return_best=True)
+        # img_matches = np.empty((max(img1.shape[0], img2.shape[0]), img1.shape[1] + img2.shape[1], 3), dtype=np.uint8)
+        img3 = cv2.drawMatches(img1, kp1, img2, kp2, matches, None,
+                               flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
+        # cv2.imshow("Good Matches", img_matches)
+        # cv2.waitKey()
+        plt.imshow(img3,)
+        plt.show()
+    matches = flann(des1, des2, index_params, search_params, return_best=return_best)
     return matches
 
 # ****************************************************************************
