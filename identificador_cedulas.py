@@ -1,8 +1,9 @@
-    """
+"""
 Created on 10 de mai de 2019
 
 identifica cedulas e avalia se eh uma nota verdadeira
 """
+
 import cv2
 import processor
 import utilities
