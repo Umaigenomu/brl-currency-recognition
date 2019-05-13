@@ -15,7 +15,7 @@ def sample_exec():
     #img = cv2.resize(img, (640,400))
 
 
-    img_final = processor.process_2back(img)
+    # img_final = processor.process_2back(img)
 
     # MOSTRA IMAGEM PROCESSADA
     cv2.imshow('image', img_final)
@@ -29,5 +29,12 @@ def sample_exec():
     cv2.destroyAllWindows()
 
 if __name__ == '__main__':
+    files_to_check = [
+        "bill_shots/5_dark_back_shot.png",
+        "bill_shots/2_back_shot_3.jpg"
+    ]
+    processor_obj = processor.Processor(files=files_to_check)
+    processor_obj.process_bfm(return_matches=True, return_kps=True)
+    processor_obj.save_matches()
     pass
 

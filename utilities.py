@@ -68,6 +68,11 @@ def orb(img: np.ndarray, draw=False, nfeatures=500, scoretype=cv2.ORB_HARRIS_SCO
     return kp, des
 
 
+def return_orb_obj(nfeatures=500, scoretype=cv2.ORB_HARRIS_SCORE):
+    orb_obj = cv2.ORB_create(nfeatures=nfeatures, scoreType=scoretype)
+    return orb_obj
+
+
 def sift(img: np.ndarray):
     """
     Since this algorithm is patented, we decided not to use it.
@@ -82,7 +87,7 @@ def sift(img: np.ndarray):
 
 # ***************************** FEATURE MATCHING *****************************
 def brute_force_orb(img1: np.ndarray, img2: np.ndarray, crosscheck=False,
-                    orb_obj=None, draw=False, **orb_params):
+                    orb_obj=None, draw=False, return_kps=False, **orb_params):
     """
     Applies brute force matching using ORB descriptors. As a consequence,
     the distance between each feature is calculated with cv2.NORM_HAMMING.
@@ -109,6 +114,8 @@ def brute_force_orb(img1: np.ndarray, img2: np.ndarray, crosscheck=False,
     """
     # Find keypoints and descriptors for each image
     if not orb_obj:
+        if not orb_params:
+            orb_params = dict()
         kp1, des1 = orb(img1, **orb_params)
         kp2, des2 = orb(img2, **orb_params)
     else:
@@ -121,9 +128,11 @@ def brute_force_orb(img1: np.ndarray, img2: np.ndarray, crosscheck=False,
         sorted_matches = sorted(matches, key=lambda match: match.distance)
         img3 = cv2.drawMatches(img1, kp1, img2, kp2, sorted_matches[:15],
                                None, flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
-        plt.imshow(img3,)
+        plt.imshow(img3, )
         plt.show()
-    return matches
+    if return_kps:
+        return matches, kp1, kp2
+    return matches,
 
 
 def flann(des1, des2, index_params=None, search_params=None, flann_obj=None, return_best=False):
@@ -145,7 +154,7 @@ def flann(des1, des2, index_params=None, search_params=None, flann_obj=None, ret
 
 
 def flann_executor(img1: np.ndarray, img2: np.ndarray, algo_obj=None, search_params=None,
-                   return_best=False, draw=False, alg_params=None):
+                   return_best=False, draw=False, return_kps=False, alg_params=None):
     if not algo_obj:
         if not alg_params:
             alg_params = dict()
@@ -166,9 +175,11 @@ def flann_executor(img1: np.ndarray, img2: np.ndarray, algo_obj=None, search_par
                                flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
         # cv2.imshow("Good Matches", img_matches)
         # cv2.waitKey()
-        plt.imshow(img3,)
+        plt.imshow(img3, )
         plt.show()
     matches = flann(des1, des2, index_params, search_params, return_best=return_best)
-    return matches
+    if return_kps:
+        return matches, kp1, kp2
+    return matches,
 
 # ****************************************************************************

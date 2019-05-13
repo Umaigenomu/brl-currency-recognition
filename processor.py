@@ -1,76 +1,105 @@
 import utilities
+import cv2
+import os
 
-def get_funcs():
-    return IMG_FUNC
+DATABASE_DIR = "database/optimal/"
+RESULTS_DIR = "results/"
 
-# processa nota de 2 reais 
-def process_2front(img):
-    return 
+def process_single(img1, img2, algo_obj, algo="bfm", only_show=True, return_matches=False,return_kps=False, **params):
+    results = None
+    if algo == "bfm":
+        if only_show:
+            utilities.brute_force_orb(img1, img2, orb_obj=algo_obj, draw=True, return_kps=return_kps)
+        else:
+            results = utilities.brute_force_orb(img1, img2, orb_obj=algo_obj, return_kps=return_kps)
+    elif algo == "flann":
+        if only_show:
+            utilities.flann_executor(img1, img2, algo_obj=algo_obj, draw=True,return_kps=return_kps, **params)
+        else:
+            results = utilities.flann_executor(img1, img2, algo_obj=algo_obj,return_kps=return_kps, **params)
+    else:
+        raise ValueError("algo parameter only accepts either 'orb' or 'flann'")
+    if not only_show:
+        dist_sum = 0
+        for match in results[0]:
+            dist_sum += match.distance
+        if return_matches or return_kps:
+            return dist_sum, results
+        return dist_sum
 
-def process_2back(img):
-    
-    img = utilities.clahe(img)
-    img = utilities.denoising(img)
-    #img = utilities.bilateral(img)
-    img_result = utilities.adaptive_thresholding(img)
-    
-    return img_result
+def identify(input_img, algo="bfm", return_matches=False, return_kps=False, **params):
+    min_dist = None
+    best_res = None
+    algo_obj = utilities.return_orb_obj(**params)
+    for file_name in os.listdir(DATABASE_DIR):
+        if file_name[-3:]  == "jpg":
+            img2 = cv2.imread(DATABASE_DIR + file_name)
+            if return_matches or return_kps:
+                dist_sum, results = process_single(input_img, img2, algo_obj=algo_obj, algo=algo,
+                                                   only_show=False, return_matches=return_matches,return_kps=return_kps, **params)
+            else:
+                dist_sum = process_single(input_img, img2, algo_obj=algo_obj, algo=algo, only_show=False, return_kps=return_kps, **params)
+            if not min_dist or dist_sum < min_dist:
+                min_dist = dist_sum
+                match_file = file_name
+                if return_matches or return_kps:
+                    best_res = results
+    if return_matches or return_kps:
+        return match_file, best_res
+    return match_file
 
-# **********************************
 
-# processa nota de 5 reais
-def process_5front(img):
-    return
+class Processor:
+    def __init__(self, files: list, orb_params:dict=None, flann_params:dict=None):
+        self.files = files
+        self.bfm_results = []
+        self.bfm_matches = []
+        self.bfm_kps=[]
+        self.flann_results = []
+        self.flann_matches = []
+        self.flann_kps = []
+        self.orb_params = orb_params
+        self.flann_params = flann_params
 
-def process_5back(img):
-    return 
+    def process_bfm(self, return_matches=False, return_kps=False):
+        for file in self.files:
+            input_img = cv2.imread(file)
+            result = identify(input_img, algo="bfm",return_matches=return_matches,
+                              return_kps=return_kps, **self.orb_params)
+            if return_matches or return_kps:
+                self.bfm_results.append(result[0])
+                self.bfm_matches.append(result[1])
+            else:
+                self.bfm_results.append(result)
+            if return_kps:
+                self.bfm_kps.append((result[3], result[4]))
 
-# **********************************
+    def process_flann(self, return_matches=False, return_kps=False):
+        for file in self.files:
+            input_img = cv2.imread(file)
+            result = identify(input_img, algo="flann", return_matches=return_matches,
+                              return_kps=return_kps, **self.flann_params)
+            if return_matches or return_kps:
+                self.flann_results.append(result[0])
+                self.flann_matches.append(result[1])
+            else:
+                self.flann_results.append(result)
+            if return_kps:
+                self.flann_kps.append((result[3], result[4]))
 
-# processa nota de 10 reais
-def process_10front(img):
-    return
- 
-def process_10back(img):
-    return 
+    def save_matches(self):
+        if self.bfm_matches:
+            for file, matches, kps, match_file in zip(self.files, self.bfm_matches, self.bfm_kps, self.bfm_results):
+                img1 = cv2.imread(file)
+                img2 = cv2.imread(match_file)
+                img3 = cv2.drawMatches(img1, kps[0], img2, kps[1], matches,
+                                       outImg=None, flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
+                cv2.imwrite(RESULTS_DIR+file[:-4]+"_match.png", img3)
+        if self.flann_matches:
+            for file, matches, kps, match_file in zip(self.files, self.flann_matches, self.flann_kps, self.flann_results):
+                img1 = cv2.imread(file)
+                img2 = cv2.imread(match_file)
+                img3 = cv2.drawMatches(img1, kps[0], img2, kps[1], matches,
+                                       outImg=None, flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
+                cv2.imwrite(RESULTS_DIR+file[:-4]+"_match.png", img3)
 
-# **********************************
-
-# processa nota de 20 reais
-def process_20front(img):
-    return 
-
-def process_20back(img):
-    return
-# **********************************
-
-# processa nota de 50 reais
-def process_50front(img):
-    return 
-
-def process_50back(img):
-    return
-# **********************************
-
-# processa nota de 20 reais
-def process_100front(img):
-    return 
-
-def process_100back(img):
-    return
-# **********************************
-
-IMG_FUNC = {
-    "bill_scans/2_back.jpg": process_2back,
-    "bill_scans/2_front.jpg": process_2front,
-    "bill_scans/5_back.jpg": process_5back,
-    "bill_scans/5_front.jpg": process_5front,
-    "bill_scans/10_back.jpg": process_10back,
-    "bill_scans/10_front.jpg": process_10front,
-    "bill_scans/20_back.jpg": process_20back,
-    "bill_scans/20_front.jpg": process_20front,
-    "bill_scans/50_back.jpg": process_50back,
-    "bill_scans/50_front.jpg": process_50front,
-    "bill_scans/100_back.jpg": process_100back,
-    "bill_scans/100_front.jpg": process_100front
-}
