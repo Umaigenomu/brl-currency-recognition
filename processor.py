@@ -5,7 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 DATABASE_DIR = "database/optimal/"
-RESULTS_DIR = "results/"
+RESULTS_DIR = "./results/"
 
 
 def load_img1(file):
@@ -125,8 +125,10 @@ class Processor:
                 good_matches = sorted(matches, key=lambda match: match.distance)[:15]
                 img3 = cv2.drawMatches(img1, kps[0], img2, kps[1], good_matches,
                                        outImg=img_matches, flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
-                cv2.imwrite(RESULTS_DIR + file[:-4] + "_match.png", img3)
-                cv2.imwrite(RESULTS_DIR + file[:-4] + "_match.png", img_matches)
+                
+                savefile = file.split('/')[1][:-4]
+                cv2.imwrite(RESULTS_DIR + savefile + "_match.png", img3)
+                cv2.imwrite(RESULTS_DIR + savefile + "_match.png", img_matches)
                 plt.imshow(img_matches)
                 plt.show()
         if self.flann_matches:
