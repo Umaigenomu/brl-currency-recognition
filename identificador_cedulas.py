@@ -17,10 +17,11 @@ def sample_exec():
 
     # img = cv2.resize(img, (640,400))
 
-
+    #PREPROCESSING
     img = utilities.clahe(img)
     img = utilities.denoising(img)
     img_final = utilities.adaptive_thresholding(img)
+
 
     # MOSTRA IMAGEM PROCESSADA
     cv2.imshow('image', img_final)
