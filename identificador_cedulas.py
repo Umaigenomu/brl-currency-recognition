@@ -90,6 +90,7 @@ def detect_counterfeit(orig_img_addr, test_img_addr, identity, draw_cont=False):
 
     actual_bill = cca.extract_bill_from_img(test_img, gray_filter=True, draw=draw_cont)
     if actual_bill is None:
+        print("Contour not found through edge detection. Using alignment instead.")
         actual_bill = cca.align(orig_img, test_img)[0]
 
     orig_preprocessed = processor.preprocess_img(orig_img,

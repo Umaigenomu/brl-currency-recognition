@@ -123,7 +123,6 @@ def extract_bill_from_img(img, gray_filter=True, resize=True, resize_height=300,
         ratio = img.shape[0] / resize_height
         cnt = canny_edge_quad_contour_detection(resized_img, gray_filter=gray_filter, contour_precision=0.015)
         if not cnt.any():
-            print("Line 56: Contour not found.")
             return None
         if draw:
             draw_contour(resized_img, cnt)
@@ -131,7 +130,6 @@ def extract_bill_from_img(img, gray_filter=True, resize=True, resize_height=300,
     else:
         cnt = canny_edge_quad_contour_detection(img, contour_precision=0.015)
         if not cnt.any():
-            print("Line 62: Contour not found.")
             return None
         if draw:
             draw_contour(img, cnt)
