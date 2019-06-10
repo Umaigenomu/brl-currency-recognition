@@ -27,13 +27,16 @@ def preprocess_img(img, clahe=True, denoising=True, thresholding=True):
     return img1
 
 
-def process_single(img1, img2, algo_obj=None, algo="bfm", crosscheck=True, only_show=True, return_matches=False, return_kps=False, **params):
+def process_single(img1, img2, algo_obj=None, algo="bfm", crosscheck=True, return_best=False,
+                   only_show=True, return_matches=False, return_kps=False, **params):
     results = None
     if algo == "bfm":
         if only_show:
-            utilities.brute_force_orb(img1, img2, crosscheck=crosscheck, orb_obj=algo_obj, draw=True, return_kps=return_kps)
+            utilities.brute_force_orb(img1, img2, crosscheck=crosscheck,
+                                      orb_obj=algo_obj, draw=True, return_kps=return_kps, **params)
         else:
-            results = utilities.brute_force_orb(img1, img2, crosscheck=crosscheck, orb_obj=algo_obj, return_kps=return_kps)
+            results = utilities.brute_force_orb(img1, img2, crosscheck=crosscheck,
+                                                orb_obj=algo_obj, return_kps=return_kps, **params)
     elif algo == "flann":
         if only_show:
             utilities.flann_executor(img1, img2, algo_obj=algo_obj, draw=True, return_kps=return_kps, **params)
@@ -45,15 +48,27 @@ def process_single(img1, img2, algo_obj=None, algo="bfm", crosscheck=True, only_
         dist_sum = 0
         for match in results[0]:
             if isinstance(match, list):
-                if not match:
+                if not match or len(match) < 2:
                     continue
                 dist = match[0].distance
             else:
                 dist = match.distance
             dist_sum += dist
         if return_matches or return_kps:
-            if isinstance(results[0][0], list):
-                results = results[:][0]
+            if return_kps:
+                if isinstance(results[0][0], list):
+                    results = results[:][0]
+            else:
+                if return_best:
+                    best = []
+                    for match in results[0]:
+                        if not match or len(match) < 2:
+                            continue
+                        if match[0].distance < 0.75 * match[1].distance:
+                            best.append(match[0])
+                    results = best
+                else:
+                    results = results[0]
             return dist_sum, results
         return dist_sum
 
@@ -130,16 +145,18 @@ class Processor:
     def print_matches(self, save=True, show=False, return_matched_files=True):
         matched_files = []
         if self.bfm_matches:
-            for file, matched_files, kps, match_file in zip(self.files, self.bfm_matches, self.bfm_kps, self.bfm_results):
+            for file, matched_files, kps, match_file in zip(self.files, self.bfm_matches, self.bfm_kps,
+                                                            self.bfm_results):
                 img1 = preprocess_img_addr(file)
                 img2 = cv2.imread(match_file)
                 print(file)
                 print(match_file)
-                img_matches = np.empty((max(img1.shape[0], img2.shape[0]), img1.shape[1] + img2.shape[1], 3), dtype=np.uint8)
+                img_matches = np.empty((max(img1.shape[0], img2.shape[0]), img1.shape[1] + img2.shape[1], 3),
+                                       dtype=np.uint8)
                 good_matches = sorted(matched_files, key=lambda match: match.distance)[:15]
                 img3 = cv2.drawMatches(img1, kps[0], img2, kps[1], good_matches,
                                        outImg=img_matches, flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
-                
+
                 if save:
                     savefile = file.split('/')[1][:-4]
                     cv2.imwrite(RESULTS_DIR + savefile + "_match.png", img3)
@@ -151,12 +168,13 @@ class Processor:
                     matched_files.append(match_file)
         elif self.flann_matches:
             for file, matched_files, kps, match_file in zip(self.files, self.flann_matches, self.flann_kps,
-                                                      self.flann_results):
+                                                            self.flann_results):
                 img1 = preprocess_img_addr(file)
                 img2 = cv2.imread(match_file)
                 print(file)
                 print(match_file)
-                img_matches = np.empty((max(img1.shape[0], img2.shape[0]), img1.shape[1] + img2.shape[1], 3), dtype=np.uint8)
+                img_matches = np.empty((max(img1.shape[0], img2.shape[0]), img1.shape[1] + img2.shape[1], 3),
+                                       dtype=np.uint8)
                 img3 = cv2.drawMatches(img1, kps[0], img2, kps[1], matched_files,
                                        outImg=img_matches, flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
                 if save:

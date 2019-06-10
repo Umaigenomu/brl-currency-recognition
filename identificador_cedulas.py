@@ -110,8 +110,18 @@ def detect_counterfeit(orig_img_addr, test_img_addr, identity, draw_cont=False):
     # cv2.imshow("test", test_watermark)
     # cv2.waitKey(0)
 
-    distances_sum = processor.process_single(orig_watermark, test_watermark, algo="bfm", crosscheck=True, only_show=False)
-    print(distances_sum)
+    distances_sum, matches = processor.process_single(orig_watermark, test_watermark,
+                                                      algo="bfm",
+                                                      crosscheck=True,
+                                                      only_show=False,
+                                                      return_matches=True,
+                                                      return_best=True,
+                                                      k=2,
+                                                      nfeatures=1000)
+    match_distances = [match.distance for match in matches]
+    print(len(match_distances))
+    print(sum(match_distances)/len(match_distances))
+    print((sum(match_distances)/len(match_distances)) / len(match_distances))
 
     # orig_wm_hsv = cv2.cvtColor(
     #     cv2.cvtColor(orig_watermark, cv2.COLOR_GRAY2BGR),
@@ -121,10 +131,9 @@ def detect_counterfeit(orig_img_addr, test_img_addr, identity, draw_cont=False):
     #     cv2.COLOR_BGR2HSV)
 
 
-
 if __name__ == '__main__':
-    detect_counterfeit("bill_scans/100_front.jpg", files_to_check[-2], "100_front")
     detect_counterfeit("bill_scans/100_front.jpg", files_to_check[-3], "100_front")
+    detect_counterfeit("bill_scans/100_front.jpg", files_to_check[-2], "100_front")
     detect_counterfeit("bill_scans/100_front.jpg", files_to_check[-1], "100_front")
     print()
     detect_counterfeit("bill_scans/2_back.jpg", files_to_check[0], "2_back")

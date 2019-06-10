@@ -86,7 +86,7 @@ def sift(img: np.ndarray):
 
 
 # ***************************** FEATURE MATCHING *****************************
-def brute_force_orb(img1: np.ndarray, img2: np.ndarray, crosscheck=False,
+def brute_force_orb(img1: np.ndarray, img2: np.ndarray, crosscheck=False, k=None,
                     orb_obj=None, draw=False, return_kps=False, **orb_params):
     """
     Applies brute force matching using ORB descriptors. As a consequence,
@@ -121,14 +121,18 @@ def brute_force_orb(img1: np.ndarray, img2: np.ndarray, crosscheck=False,
     else:
         kp1, des1 = orb_obj.detectAndCompute(img1, None)
         kp2, des2 = orb_obj.detectAndCompute(img2, None)
-    # Create brute force matcher with NORM_HAMMING as its distance alg
-    bfm = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=crosscheck)
-    matches = bfm.match(des1, des2)
-    if draw:
+    if not k:
+        # Create brute force matcher with NORM_HAMMING as its distance alg
+        bfm = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=crosscheck)
+        matches = bfm.match(des1, des2)
+    else:
+        bfm = cv2.BFMatcher()
+        matches = bfm.knnMatch(des1, des2, k)
+    if not k and draw:
         sorted_matches = sorted(matches, key=lambda match: match.distance)
         img3 = cv2.drawMatches(img1, kp1, img2, kp2, sorted_matches[:15],
                                None, flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
-        plt.imshow(img3, )
+        plt.imshow(img3)
         plt.show()
     if return_kps:
         return matches, kp1, kp2
@@ -146,7 +150,7 @@ def flann(des1, des2, index_params=None, search_params=None, flann_obj=None, ret
         # Filter matches using Lowe's ratio test
         good_matches = []
         for m1, m2 in matches:
-            if m1.distance < 0.7 * m2.distance:
+            if m1.distance < 0.75 * m2.distance:
                 good_matches.append(m1)
         return good_matches
     else:
