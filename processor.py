@@ -17,7 +17,11 @@ def preprocess_img_addr(file):
 
 
 def preprocess_img(img, clahe=True, denoising=True, thresholding=True):
-    img1 = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    try:
+        img1 = cv2.cvtColor(img.copy(), cv2.COLOR_BGR2GRAY)
+    except TypeError:
+        # Already preprocessed
+        return img
     if clahe:
         img1 = utilities.clahe(img1)
     if denoising:
@@ -45,6 +49,7 @@ def process_single(img1, img2, algo_obj=None, algo="bfm", crosscheck=True, retur
     else:
         raise ValueError("algo parameter only accepts either 'bfm' or 'flann'")
     if not only_show:
+        results = list(results)
         dist_sum = 0
         for match in results[0]:
             if isinstance(match, list):
@@ -55,20 +60,14 @@ def process_single(img1, img2, algo_obj=None, algo="bfm", crosscheck=True, retur
                 dist = match.distance
             dist_sum += dist
         if return_matches or return_kps:
-            if return_kps:
-                if isinstance(results[0][0], list):
-                    results = results[:][0]
-            else:
-                if return_best:
-                    best = []
-                    for match in results[0]:
-                        if not match or len(match) < 2:
-                            continue
-                        if match[0].distance < 0.75 * match[1].distance:
-                            best.append(match[0])
-                    results = best
-                else:
-                    results = results[0]
+            if return_best:
+                best = []
+                for match in results[0]:
+                    if not match or len(match) < 2:
+                        continue
+                    if match[0].distance < 0.70 * match[1].distance:
+                        best.append(match[0])
+                results[0] = best
             return dist_sum, results
         return dist_sum
 

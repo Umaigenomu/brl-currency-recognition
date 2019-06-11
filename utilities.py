@@ -86,6 +86,12 @@ def sift(img: np.ndarray):
 
 
 # ***************************** FEATURE MATCHING *****************************
+def draw_matches(img1, img2, matches, kp1, kp2, num_matches=15):
+    sorted_matches = sorted(matches, key=lambda match: match.distance)
+    return cv2.drawMatches(img1, kp1, img2, kp2, sorted_matches[:num_matches],
+                           None, flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
+
+
 def brute_force_orb(img1: np.ndarray, img2: np.ndarray, crosscheck=False, k=None,
                     orb_obj=None, draw=False, return_kps=False, **orb_params):
     """
@@ -129,9 +135,7 @@ def brute_force_orb(img1: np.ndarray, img2: np.ndarray, crosscheck=False, k=None
         bfm = cv2.BFMatcher()
         matches = bfm.knnMatch(des1, des2, k)
     if not k and draw:
-        sorted_matches = sorted(matches, key=lambda match: match.distance)
-        img3 = cv2.drawMatches(img1, kp1, img2, kp2, sorted_matches[:15],
-                               None, flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
+        img3 = draw_matches(img1, img2, matches, kp1, kp2)
         plt.imshow(img3)
         plt.show()
     if return_kps:

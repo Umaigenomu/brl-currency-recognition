@@ -28,6 +28,7 @@ def canny_edge_quad_contour_detection(img, gray_filter=True, resize=False, resiz
         # input_img = cv2.bilateralFilter(grayed, 11, 17, 17)
 
     edged = cv2.Canny(input_img, 20, 200)
+    cv2.imwrite("results/examples/canny_edge_2_darkback.png", edged)
     # cv2.imshow("test", edged)
     # cv2.waitKey(0)
 
@@ -46,7 +47,7 @@ def canny_edge_quad_contour_detection(img, gray_filter=True, resize=False, resiz
     return currency_bill_contour
 
 
-def draw_contour(img, contour, show=True, *params):
+def draw_contour(img, contour, show=True, save=True, *params):
     if not params:
         params = [-1, (0, 255, 0), 3]
     # In-place operation
@@ -55,7 +56,8 @@ def draw_contour(img, contour, show=True, *params):
     if show:
         cv2.imshow("Contours", img)
         cv2.waitKey(0)
-
+    if save:
+        cv2.imwrite("results/examples/Contours.png", img)
 
 def extract_contour_from_img(original_img, contour, ratio=1):
     # Top-left, top-right, bottom-right, and bottom-left corners of the contour in an
